@@ -1,5 +1,5 @@
 # Cinema 3 - Microservices in Python
-
+# this edit is for testing the pre-push hook.
 A modern Python microservices example project for a movie theater system. The backend consists of 4 microservices built with Flask:
 
 * **Movie Service** (port 5001): Movie information (ratings, title, etc.)
