@@ -1,0 +1,85 @@
+upstream movies_backend {
+    least_conn;
+    server localhost:5001;
+    server localhost:5005;
+}
+
+upstream showtimes_backend {
+    server localhost:5002 max_fails=3 fail_timeout=30s;
+    server localhost:5006 backup;
+}
+
+server {
+    listen 80;
+    server_name localhost;
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name localhost;
+
+    ssl_certificate /etc/nginx/ssl/selfsigned.crt;
+    ssl_certificate_key /etc/nginx/ssl/selfsigned.key;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+#    deny 192.168.86.16/32;
+    allow all;
+
+    location / {
+        proxy_pass http://localhost:5004;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /movies/ {
+        proxy_pass http://movies_backend/movies;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        access_log /var/log/nginx/movies_access.log;
+    }
+
+    location /showtimes/ {
+        proxy_pass http://showtimes_backend/showtimes;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+
+        proxy_http_version 1.1;
+        proxy_connect_timeout 2;
+        proxy_read_timeout 5;
+
+        add_header Cache-Control "public, max-age=30";
+        add_header Expires $date_gmt;
+
+        error_page 502 503 504 = /custom_50x.html;
+    }
+
+    location /bookings/ {
+        proxy_pass http://localhost:5003/bookings;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /users/ {
+        limit_req zone=users_limit burst=10 nodelay;
+        proxy_pass http://localhost:5000/users;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        error_page 429 = /429.html;
+    }
+
+    location = /429.html {
+        return 429 'Rate limit exceeded. Try again later.';
+        add_header Content-Type text/plain;
+    }
+
+    location = /custom_50x.html {
+        root /var/www/html;
+    }
+}
