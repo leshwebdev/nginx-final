@@ -27,7 +27,7 @@ def hello() -> Dict[str, Any]:
     """Root endpoint showing available routes"""
     return {
         "uri": "/",
-	"handler": "port 5002",
+        "handler": "port 5006",
         "subresource_uris": {
             "showtimes": "/showtimes",
             "showtime": "/showtimes/<date>"
@@ -49,7 +49,7 @@ def showtimes_list() -> Dict[str, List[str]]:
 
 def main() -> None:
     """Main entry point for the application"""
-    app.run(host="0.0.0.0", port=5002, debug=True)
+    app.run(host="0.0.0.0", port=5006, debug=True)
 
 if __name__ == "__main__":
     main()

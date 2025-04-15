@@ -13,8 +13,14 @@ test:
 run-movies:
 	python3 -m services.movies
 
+run-movies2:
+	python3 -m services.movies2
+
 run-showtimes:
 	python3 -m services.showtimes
+
+run-showtimes2:
+	python3 -m services.showtimes2
 
 run-bookings:
 	python3 -m services.bookings
@@ -27,7 +33,9 @@ run-ui:
 
 run-all:
 	python3 -m services.movies & \
+	python3 -m services.movies2 & \
 	python3 -m services.showtimes & \
+	python3 -m services.showtimes2 & \
 	python3 -m services.bookings & \
 	python3 -m services.user & \
 	python3 -m services.ui
